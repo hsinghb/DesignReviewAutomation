@@ -1,9 +1,36 @@
 # Contributing to Design Review Automation
 
-Thank you for your interest in contributing to Design Review Automation! This document provides guidelines and steps for contributing to the project.
+First off, thank you for considering contributing to Design Review Automation! It's people like you that make this tool better for everyone.
 
-## Development Setup
+## Quick Links
+- [Issue Tracker](https://github.com/yourusername/design-review-automation/issues)
+- [Pull Requests](https://github.com/yourusername/design-review-automation/pulls)
 
+## How Can I Contribute?
+
+### 1. Reporting Bugs 🐛
+Before creating bug reports, please check the issue list as you might find out that you don't need to create one. When you are creating a bug report, please include as many details as possible:
+
+* Use a clear and descriptive title
+* Describe the exact steps to reproduce the problem
+* Provide specific examples to demonstrate the steps
+* Describe the behavior you observed after following the steps
+* Explain which behavior you expected to see instead and why
+* Include any error messages or logs
+* Include the Python version and operating system
+
+### 2. Suggesting Enhancements 💡
+Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, please include:
+
+* Use a clear and descriptive title
+* Provide a step-by-step description of the suggested enhancement
+* Provide specific examples to demonstrate the steps
+* Describe the current behavior and explain which behavior you expected to see instead
+* Explain why this enhancement would be useful
+
+### 3. Code Contributions 💻
+
+#### Setting Up Your Development Environment
 1. Fork the repository
 2. Clone your fork:
    ```bash
@@ -17,77 +44,105 @@ Thank you for your interest in contributing to Design Review Automation! This do
    ```
 4. Install development dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -e ".[dev]"
    ```
 
-## Development Guidelines
-
-### Code Style
-
-- Follow PEP 8 guidelines
-- Use Black for code formatting
-- Use isort for import sorting
-- Use type hints with mypy
-
-### Testing
-
-- Write tests for new features
-- Ensure all tests pass before submitting PR
-- Maintain or improve test coverage
-
-### Documentation
-
-- Update README.md for significant changes
-- Add docstrings to new functions and classes
-- Update type hints and comments
-
-## Pull Request Process
-
-1. Create a new branch for your feature:
+#### Making Changes
+1. Create a new branch:
    ```bash
    git checkout -b feature/your-feature-name
    ```
-
-2. Make your changes and commit them:
+2. Make your changes
+3. Run the tests:
+   ```bash
+   pytest
+   ```
+4. Run the linters:
+   ```bash
+   black .
+   mypy .
+   ```
+5. Commit your changes:
    ```bash
    git add .
-   git commit -m "Description of your changes"
+   git commit -m "Add some feature"
    ```
-
-3. Push to your fork:
+6. Push to your fork:
    ```bash
    git push origin feature/your-feature-name
    ```
+7. Create a Pull Request
 
-4. Create a Pull Request from your fork to the main repository
+### Code Style 📝
 
-### Pull Request Guidelines
+We use:
+- [Black](https://black.readthedocs.io/) for code formatting
+- [mypy](http://mypy-lang.org/) for type checking
+- [pylint](https://www.pylint.org/) for code quality
+- [pytest](https://docs.pytest.org/) for testing
 
-- Use a clear and descriptive title
-- Provide a detailed description of your changes
-- Include any relevant issue numbers
-- Add tests for new features
-- Update documentation as needed
+Please ensure your code:
+- Is formatted with Black
+- Passes mypy type checking
+- Has docstrings for public functions and classes
+- Includes appropriate tests
+- Follows Python's [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide
 
-## Code Review Process
+### Writing Tests 🧪
 
-1. All PRs will be reviewed by maintainers
-2. Address any feedback and make requested changes
-3. Once approved, your PR will be merged
+- Write tests for new features
+- Update tests for bug fixes
+- Ensure all tests pass before submitting PR
+- Include both unit tests and integration tests where appropriate
 
-## Release Process
+Example test:
+```python
+def test_review_design():
+    agent = DesignReviewAgent()
+    criteria = DesignReviewCriteria(
+        problem_statement="Test criteria",
+        high_level_design="Test criteria",
+        proposal="Test criteria",
+        security="Test criteria",
+        operating_model="Test criteria",
+        resiliency="Test criteria"
+    )
+    
+    result = agent.review_design("test_doc.txt", criteria)
+    assert result["status"] == "success"
+    assert "review" in result
+```
 
-1. Update version in `pyproject.toml`
-2. Update CHANGELOG.md
-3. Create a new release on GitHub
-4. The release will trigger the publish workflow
+### Documentation 📚
 
-## Getting Help
+- Update the README.md if you change functionality
+- Add docstrings to new functions and classes
+- Update the documentation in the docs/ directory
+- Include examples in your documentation
 
-- Open an issue for bug reports or feature requests
-- Join discussions in existing issues
-- Contact maintainers for questions
+### Pull Request Process 🔄
 
-## License
+1. Update the README.md with details of changes if needed
+2. Update the CHANGELOG.md with a note describing your changes
+3. The PR will be merged once you have the sign-off of at least one maintainer
 
-By contributing, you agree that your contributions will be licensed under the project's MIT License. 
+## Code of Conduct
+
+### Our Pledge
+We pledge to make participation in our project a harassment-free experience for everyone.
+
+### Our Standards
+* Using welcoming and inclusive language
+* Being respectful of differing viewpoints and experiences
+* Gracefully accepting constructive criticism
+* Focusing on what is best for the community
+* Showing empathy towards other community members
+
+## Questions? 🤔
+
+Feel free to:
+- Open an issue with your question
+- Join our discussions
+- Contact the maintainers directly
+
+Thank you for contributing! 🙏 

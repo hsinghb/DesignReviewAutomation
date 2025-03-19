@@ -8,6 +8,47 @@
 
 A powerful tool for automated technical design document review using OpenAI's GPT models. This tool helps streamline the design review process by providing comprehensive, structured feedback on technical design documents.
 
+## Quick Start ⚡
+
+### 1. Install from GitHub
+```bash
+# Method 1: Clone and install
+git clone https://github.com/yourusername/design-review-automation.git
+cd design-review-automation
+pip install -e .
+
+# Method 2: Direct pip install from GitHub
+pip install git+https://github.com/yourusername/design-review-automation.git
+```
+
+### 2. Set up OpenAI API Key
+```bash
+# Create .env file
+echo "OPENAI_API_KEY=your_api_key_here" > .env
+```
+
+### 3. Run Your First Review
+```python
+from design_review_automation import DesignReviewAgent, DesignReviewCriteria
+
+# Initialize agent
+agent = DesignReviewAgent()
+
+# Create basic criteria
+criteria = DesignReviewCriteria(
+    problem_statement="Clear problem definition",
+    high_level_design="System architecture and patterns",
+    proposal="Solution approach",
+    security="Security measures",
+    operating_model="Operations and monitoring",
+    resiliency="System reliability"
+)
+
+# Review a document
+result = agent.review_design("your_design_doc.docx", criteria)
+print(agent.format_review_output(result["review"]))
+```
+
 ## Features
 
 - Automated review of technical design documents
@@ -24,33 +65,56 @@ A powerful tool for automated technical design document review using OpenAI's GP
 - Extensive error handling and logging
 - Customizable prompt templates
 
-## Installation
+## Requirements
 
-### From PyPI
+- Python 3.8 or higher
+- OpenAI API key
+- Required Python packages (automatically installed):
+  - openai>=1.0.0
+  - python-dotenv>=0.19.0
+  - pydantic>=2.0.0
+  - python-docx>=0.8.11
+  - PyPDF2>=3.0.0
+  - markdown>=3.4.0
+  - python-magic>=0.4.27
 
+## Detailed Installation Options
+
+### From GitHub (Development Version)
 ```bash
-pip install design-review-automation
-```
-
-### From Source
-
-```bash
-git clone https://github.com/yourusername/design-review-automation.git
+# Clone with specific branch
+git clone -b main https://github.com/yourusername/design-review-automation.git
 cd design-review-automation
-pip install -e .
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install in editable mode with development dependencies
+pip install -e ".[dev]"
 ```
 
-## Usage
+### From Source Archive
+```bash
+# Download source archive
+wget https://github.com/yourusername/design-review-automation/archive/refs/heads/main.zip
+unzip main.zip
+cd design-review-automation-main
 
-### Basic Usage
+# Install
+pip install .
+```
 
+## Usage Examples
+
+### Basic Document Review
 ```python
 from design_review_automation import DesignReviewAgent, DesignReviewCriteria
 
 # Initialize the agent
-agent = DesignReviewAgent(prompt_templates_dir="prompt_templates")
+agent = DesignReviewAgent()
 
-# Define review criteria
+# Define basic criteria
 criteria = DesignReviewCriteria(
     problem_statement="Clear problem definition with scope and impact",
     high_level_design="Comprehensive system architecture and design patterns",
@@ -69,90 +133,127 @@ else:
     print(f"Error during review: {result['message']}")
 ```
 
-### Command Line Interface
-
-```bash
-design-review --input path/to/design.docx --output review_results.txt
+### Custom Organization Criteria
+```python
+# Define criteria with organization-specific requirements
+criteria = DesignReviewCriteria(
+    # ... basic criteria ...
+    org_design_criteria=[
+        "Alignment with company architecture standards",
+        "Use of approved design patterns",
+        "Integration with existing systems",
+        "Scalability considerations"
+    ],
+    org_proposal_criteria=[
+        "Resource requirements and availability",
+        "Implementation timeline",
+        "Risk assessment and mitigation",
+        "Cost-benefit analysis"
+    ],
+    min_score_threshold=7,
+    require_security_review=True
+)
 ```
 
-### Custom Templates
+### Using Custom Templates
+```python
+# Initialize agent with custom templates
+agent = DesignReviewAgent(prompt_templates_dir="my_templates")
 
-Create custom prompt templates in JSON format:
-
-```json
+# Create custom template file: my_templates/security_prompt.json
 {
-    "name": "problem_statement_prompt",
-    "content": "Review the following problem statement:\n\n{content}\n\nEvaluation Criteria:\n{criteria}",
+    "name": "security_prompt",
+    "content": "As a security expert, review this section:\n\n{content}\n\nFocus on:\n{criteria}",
     "variables": ["content", "criteria"],
     "format": "text"
 }
 ```
 
-## Configuration
+## Common Use Cases
 
-### Environment Variables
+1. **Design Document Review**
+   - Technical design documents
+   - Architecture proposals
+   - System design specifications
 
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `MAX_CHUNK_SIZE`: Maximum tokens per chunk (default: 8000)
+2. **Security Review**
+   - Security architecture review
+   - Threat modeling validation
+   - Compliance verification
 
-### Review Criteria
+3. **Quality Assurance**
+   - Design pattern validation
+   - Best practices verification
+   - Standards compliance
 
-Customize review criteria by setting organization-specific requirements:
+## Troubleshooting
 
+### Common Issues
+
+1. **API Key Issues**
 ```python
-criteria = DesignReviewCriteria(
-    # ... other criteria ...
-    org_design_criteria=[
-        "Custom design criterion 1",
-        "Custom design criterion 2"
-    ],
-    org_proposal_criteria=[
-        "Custom proposal criterion 1",
-        "Custom proposal criterion 2"
-    ],
-    min_score_threshold=8,
-    require_security_review=True,
-    require_resiliency_review=True
-)
+# Check if API key is properly loaded
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("OpenAI API key not found!")
 ```
 
-## Development
-
-### Setup Development Environment
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/design-review-automation.git
-cd design-review-automation
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Run linting
-black .
-mypy .
+2. **Document Processing Issues**
+```python
+# Enable debug logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
 ```
 
-### Running Tests
-
-```bash
-pytest tests/
+3. **Memory Issues with Large Documents**
+```python
+# Adjust chunk size for large documents
+agent = DesignReviewAgent(max_chunk_size=4000)
 ```
 
-### Contributing
+## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+We welcome contributions! Here's how you can help:
+
+1. **Fork the Repository**
+   - Create your feature branch (`git checkout -b feature/AmazingFeature`)
+   - Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+   - Push to the branch (`git push origin feature/AmazingFeature`)
+   - Open a Pull Request
+
+2. **Report Issues**
+   - Use the GitHub issue tracker
+   - Include detailed description and steps to reproduce
+   - Attach sample files if possible
+
+3. **Suggest Improvements**
+   - Open discussions for feature requests
+   - Share your use cases and requirements
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This means you can:
+- ✅ Use the code commercially
+- ✅ Modify the code
+- ✅ Distribute the code
+- ✅ Use the code privately
+- ✅ Use the code for patent purposes
+
+The only requirement is to include the original copyright notice and license.
+
+## Support
+
+Need help? Here's how to get support:
+
+1. Check the [documentation](docs/)
+2. Search [existing issues](https://github.com/yourusername/design-review-automation/issues)
+3. Open a new issue
+4. Contact the maintainers
 
 ## Changelog
 
