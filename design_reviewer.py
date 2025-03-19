@@ -1,9 +1,10 @@
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, Field
 from enum import Enum
+import json
 
 # Load environment variables
 load_dotenv()
@@ -40,9 +41,19 @@ class DesignReviewCriteria(BaseModel):
     org_design_criteria: Optional[List[str]] = Field(default=None, description="Organization-specific criteria for High Level Design")
     org_proposal_criteria: Optional[List[str]] = Field(default=None, description="Organization-specific criteria for Proposal")
 
+class PromptTemplate(BaseModel):
+    name: str
+    content: str
+    variables: List[str]
+    format: str = "text"  # text, json, markdown, etc.
+
 class DesignReviewAgent:
-    def __init__(self):
+    def __init__(self, prompt_templates_dir: Optional[str] = None):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.prompt_templates_dir = prompt_templates_dir
+        self.prompt_templates = self._load_prompt_templates()
+        
+        # Default specialized prompts if no templates are loaded
         self.specialized_prompts = {
             "problem_statement": """You are an expert in problem analysis and requirements engineering.
 Focus on evaluating the clarity, completeness, and feasibility of the problem statement.""",
@@ -80,7 +91,50 @@ You should be:
 - Clear and concise in your communication
 - Critical but constructive in your feedback"""
 
+    def _load_prompt_templates(self) -> Dict[str, PromptTemplate]:
+        """Load prompt templates from the specified directory."""
+        templates = {}
+        if not self.prompt_templates_dir:
+            return templates
+            
+        try:
+            for filename in os.listdir(self.prompt_templates_dir):
+                if filename.endswith('.json'):
+                    with open(os.path.join(self.prompt_templates_dir, filename), 'r') as f:
+                        template_data = json.load(f)
+                        templates[template_data['name']] = PromptTemplate(**template_data)
+        except Exception as e:
+            print(f"Warning: Could not load prompt templates: {str(e)}")
+            
+        return templates
+
+    def _apply_template(self, template_name: str, **kwargs) -> str:
+        """Apply a template with the given variables."""
+        if template_name not in self.prompt_templates:
+            return ""
+            
+        template = self.prompt_templates[template_name]
+        content = template.content
+        
+        # Replace variables in the template
+        for var in template.variables:
+            if var in kwargs:
+                content = content.replace(f"{{{var}}}", str(kwargs[var]))
+                
+        return content
+
     def _create_section_prompt(self, section: str, content: str, criteria: List[str]) -> str:
+        # Try to use template if available
+        template_name = f"{section}_prompt"
+        if template_name in self.prompt_templates:
+            return self._apply_template(
+                template_name,
+                section=section,
+                content=content,
+                criteria="\n".join([f"   - {criterion}" for criterion in criteria])
+            )
+            
+        # Fallback to default prompt
         specialized_prompt = self.specialized_prompts.get(section, "")
         criteria_list = "\n".join([f"   - {criterion}" for criterion in criteria])
         return f"""{specialized_prompt}
@@ -101,7 +155,15 @@ Provide your evaluation in the following JSON format:
 }}"""
 
     def _create_review_prompt(self, design_doc: str, criteria: DesignReviewCriteria) -> str:
-        # Build organization-specific criteria sections
+        # Try to use template if available
+        if "review_prompt" in self.prompt_templates:
+            return self._apply_template(
+                "review_prompt",
+                design_doc=design_doc,
+                criteria=criteria
+            )
+            
+        # Fallback to default prompt
         design_criteria = criteria.org_design_criteria if criteria.org_design_criteria else [
             "L1 design depth",
             "Explanation quality",
@@ -232,6 +294,14 @@ For each section, consider:
             }
 
     def format_review_output(self, review_result: DesignReviewResult) -> str:
+        # Try to use template if available
+        if "output_format" in self.prompt_templates:
+            return self._apply_template(
+                "output_format",
+                review_result=review_result
+            )
+            
+        # Fallback to default format
         output = []
         output.append("Design Review Results")
         output.append("=" * 50)
@@ -280,7 +350,7 @@ For each section, consider:
 
 def main():
     # Example usage
-    agent = DesignReviewAgent()
+    agent = DesignReviewAgent(prompt_templates_dir="prompt_templates")
     
     # Example design document (replace with actual document)
     design_doc = """

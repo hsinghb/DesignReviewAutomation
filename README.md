@@ -1,104 +1,103 @@
-# Design Document Review Automation
+# Design Review Automation
 
-This tool automates the review of design documents using OpenAI's GPT-4 model. It evaluates design documents based on specific criteria including problem statement, high-level design, proposal, security, operating model, and resiliency.
+An AI-powered tool for automating the review of software design documents using OpenAI's GPT-4.
 
 ## Features
 
-- Automated design document review
-- Comprehensive evaluation across multiple criteria
-- Detailed feedback with strengths and areas for improvement
-- Scoring system for each section
-- Final verdict with recommendations
+- Comprehensive design document review across multiple sections:
+  - Problem Statement
+  - High Level Design
+  - Proposal
+  - Security
+  - Operating Model
+  - Resiliency
+- Customizable evaluation criteria
+- Organization-specific criteria support
+- Template-based prompts for flexible review formats
+- Structured JSON output
+- Detailed recommendations and scoring
 
-## Prerequisites
+## Installation
 
-- Python 3.8 or higher
-- OpenAI API key
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/DesignReviewAutomation.git
+cd DesignReviewAutomation
+```
 
-## Setup
-
-1. Clone this repository
 2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Create a `.env` file in the root directory with your OpenAI API key:
-   ```
-   OPENAI_API_KEY=your_api_key_here
-   ```
+```bash
+pip install -r requirements.txt
+```
+
+3. Set up environment variables:
+Create a `.env` file in the project root with:
+```
+OPENAI_API_KEY=your_api_key_here
+```
 
 ## Usage
 
-1. Prepare your design document as a string
-2. Create a `DesignReviewCriteria` instance with your specific criteria
-3. Run the script:
-   ```bash
-   python design_reviewer.py
-   ```
+1. Create your design document in text format.
 
-## Review Criteria
-
-The tool evaluates design documents based on the following criteria:
-
-1. Problem Statement
-   - Clarity of Problem definition
-   - Dependencies
-   - Risks
-   - Literal clarity
-
-2. High Level Design
-   - L1 design depth
-   - Explanation quality
-
-3. Proposal
-   - Problem-solving effectiveness
-   - L2 level design explanation
-
-4. Security
-   - Threat Modeling
-   - ASRA/ACRA
-   - CARA
-   - Penn Testing
-
-5. Operating Model
-   - Healthchecks
-   - Monitoring
-
-6. Resiliency
-
-## Output
-
-The review will provide:
-- Detailed analysis for each section
-- Strengths and areas for improvement
-- Specific recommendations
-- Score (1-10) for each section
-- Final verdict (Approve/Approve with Comments/Reject)
-
-## Example
-
+2. Initialize the review agent:
 ```python
-from design_reviewer import DesignReviewer, DesignReviewCriteria
+from design_reviewer import DesignReviewAgent, DesignReviewCriteria
 
-reviewer = DesignReviewer()
+agent = DesignReviewAgent(prompt_templates_dir="prompt_templates")
+```
 
-design_doc = """
-[Your design document content here]
-"""
-
+3. Define your review criteria:
+```python
 criteria = DesignReviewCriteria(
     problem_statement="",
     high_level_design="",
     proposal="",
     security="",
     operating_model="",
-    resiliency=""
+    resiliency="",
+    org_design_criteria=[
+        "Architecture alignment with company standards",
+        "Component reusability",
+        "Scalability considerations"
+    ],
+    org_proposal_criteria=[
+        "Cost efficiency",
+        "Implementation timeline",
+        "Resource requirements"
+    ]
 )
-
-result = reviewer.review_design(design_doc, criteria)
-print(result["review"])
 ```
 
-## Note
+4. Run the review:
+```python
+result = agent.review_design(design_doc, criteria)
+if result["status"] == "success":
+    formatted_output = agent.format_review_output(result["review"])
+    print(formatted_output)
+```
 
-Make sure to keep your OpenAI API key secure and never commit it to version control. 
+## Custom Templates
+
+You can create custom prompt templates in JSON format in the `prompt_templates` directory:
+
+```json
+{
+    "name": "problem_statement_prompt",
+    "content": "Your template content here with {variables}",
+    "variables": ["variable1", "variable2"],
+    "format": "text"
+}
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
