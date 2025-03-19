@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "design-review-automation"
@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "A tool for automated technical design document review using OpenAI's GPT models"
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
+license = { text = "MIT" }
 authors = [
     { name = "Design Review Automation Team", email = "team@designreviewautomation.com" }
 ]
@@ -51,18 +51,9 @@ dev = [
     "coverage>=6.0.0",
 ]
 
-[tool.hatch.build.targets.wheel]
+[tool.setuptools]
 packages = ["design_review_automation"]
-include = [
-    "design_review_automation/**/*.py",
-    "prompt_templates/**/*.json"
-]
-
-[tool.hatch.build.targets.sdist]
-include = [
-    "design_review_automation/**/*.py",
-    "prompt_templates/**/*.json"
-]
+package-data = { design_review_automation = ["prompt_templates/**/*.json"] }
 
 [tool.black]
 line-length = 88
