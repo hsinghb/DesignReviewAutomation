@@ -1,5 +1,11 @@
 # Design Review Automation
 
+[![CI](https://github.com/yourusername/design-review-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/design-review-automation/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/yourusername/design-review-automation/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/design-review-automation)
+[![PyPI version](https://badge.fury.io/py/design-review-automation.svg)](https://badge.fury.io/py/design-review-automation)
+[![Python Versions](https://img.shields.io/pypi/pyversions/design-review-automation.svg)](https://pypi.org/project/design-review-automation/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Python tool for automating the review of technical design documents using OpenAI's GPT-4. This tool can analyze design documents in various formats and provide structured feedback based on predefined criteria.
 
 ## Features
@@ -122,6 +128,27 @@ The tool can handle documents of various sizes:
 - Large documents (> 8000 tokens): Automatically chunked and summarized
 - Maximum document size: ~96,000 words (192 pages at 500 words per page)
 
+## Development
+
+### Running Tests
+
+```bash
+pytest
+```
+
+### Code Formatting
+
+```bash
+black .
+isort .
+```
+
+### Type Checking
+
+```bash
+mypy .
+```
+
 ## Contributing
 
 1. Fork the repository
@@ -132,4 +159,9 @@ The tool can handle documents of various sizes:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- OpenAI for providing the GPT-4 API
+- The Python community for the excellent libraries used in this project 
