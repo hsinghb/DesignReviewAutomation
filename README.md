@@ -1,53 +1,84 @@
 # Design Review Automation
 
-An AI-powered tool for automating the review of software design documents using OpenAI's GPT-4.
+A Python tool for automating the review of technical design documents using OpenAI's GPT-4. This tool can analyze design documents in various formats and provide structured feedback based on predefined criteria.
 
 ## Features
 
-- Comprehensive design document review across multiple sections:
+- Support for multiple document formats:
+  - DOCX (Microsoft Word)
+  - PDF
+  - Markdown
+  - Plain Text
+- Comprehensive design review covering:
   - Problem Statement
   - High Level Design
   - Proposal
   - Security
   - Operating Model
   - Resiliency
-- Customizable evaluation criteria
-- Organization-specific criteria support
-- Template-based prompts for flexible review formats
+- Organization-specific evaluation criteria
+- Template-based prompts for customization
+- Large document handling with automatic chunking
 - Structured JSON output
-- Detailed recommendations and scoring
+- Detailed formatted reports
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/DesignReviewAutomation.git
-cd DesignReviewAutomation
+git clone https://github.com/yourusername/design-review-automation.git
+cd design-review-automation
 ```
 
-2. Install dependencies:
+2. Create a virtual environment and activate it:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
-Create a `.env` file in the project root with:
+4. Create a `.env` file with your OpenAI API key:
 ```
 OPENAI_API_KEY=your_api_key_here
 ```
 
 ## Usage
 
-1. Create your design document in text format.
+### Basic Usage
 
-2. Initialize the review agent:
 ```python
 from design_reviewer import DesignReviewAgent, DesignReviewCriteria
 
+# Initialize the agent
 agent = DesignReviewAgent(prompt_templates_dir="prompt_templates")
+
+# Define review criteria
+criteria = DesignReviewCriteria(
+    problem_statement="",
+    high_level_design="",
+    proposal="",
+    security="",
+    operating_model="",
+    resiliency=""
+)
+
+# Review a document
+result = agent.review_design("path/to/design.docx", criteria)
+
+# Format and print the results
+if result["status"] == "success":
+    formatted_output = agent.format_review_output(result["review"])
+    print(formatted_output)
+else:
+    print(f"Error during review: {result['message']}")
 ```
 
-3. Define your review criteria:
+### Using Organization-Specific Criteria
+
 ```python
 criteria = DesignReviewCriteria(
     problem_statement="",
@@ -59,45 +90,46 @@ criteria = DesignReviewCriteria(
     org_design_criteria=[
         "Architecture alignment with company standards",
         "Component reusability",
-        "Scalability considerations"
+        "Scalability considerations",
+        "Integration patterns"
     ],
     org_proposal_criteria=[
         "Cost efficiency",
         "Implementation timeline",
-        "Resource requirements"
+        "Resource requirements",
+        "Risk mitigation strategy"
     ]
 )
 ```
 
-4. Run the review:
-```python
-result = agent.review_design(design_doc, criteria)
-if result["status"] == "success":
-    formatted_output = agent.format_review_output(result["review"])
-    print(formatted_output)
-```
+### Custom Prompt Templates
 
-## Custom Templates
-
-You can create custom prompt templates in JSON format in the `prompt_templates` directory:
+Create JSON files in the `prompt_templates` directory with the following structure:
 
 ```json
 {
-    "name": "problem_statement_prompt",
-    "content": "Your template content here with {variables}",
+    "name": "section_prompt",
+    "content": "Your prompt template here with {variables}",
     "variables": ["variable1", "variable2"],
     "format": "text"
 }
 ```
 
+## Document Size Limits
+
+The tool can handle documents of various sizes:
+- Small documents (< 8000 tokens): Processed directly
+- Large documents (> 8000 tokens): Automatically chunked and summarized
+- Maximum document size: ~96,000 words (192 pages at 500 words per page)
+
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details. 

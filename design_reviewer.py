@@ -5,6 +5,9 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 from enum import Enum
 import json
+import math
+from pathlib import Path
+from document_parser import DocumentParser
 
 # Load environment variables
 load_dotenv()
@@ -48,10 +51,12 @@ class PromptTemplate(BaseModel):
     format: str = "text"  # text, json, markdown, etc.
 
 class DesignReviewAgent:
-    def __init__(self, prompt_templates_dir: Optional[str] = None):
+    def __init__(self, prompt_templates_dir: Optional[str] = None, max_chunk_size: int = 8000):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.prompt_templates_dir = prompt_templates_dir
         self.prompt_templates = self._load_prompt_templates()
+        self.max_chunk_size = max_chunk_size  # Maximum tokens per chunk
+        self.document_parser = DocumentParser()
         
         # Default specialized prompts if no templates are loaded
         self.specialized_prompts = {
@@ -90,6 +95,73 @@ You should be:
 - Specific and actionable in your recommendations
 - Clear and concise in your communication
 - Critical but constructive in your feedback"""
+
+    def _estimate_tokens(self, text: str) -> int:
+        """Estimate the number of tokens in a text."""
+        # Rough estimation: 1 token ≈ 4 characters
+        return len(text) // 4
+
+    def _chunk_document(self, text: str) -> List[str]:
+        """Split document into chunks that fit within token limits."""
+        chunks = []
+        current_chunk = []
+        current_size = 0
+        
+        # Split by paragraphs
+        paragraphs = text.split('\n\n')
+        
+        for para in paragraphs:
+            para_tokens = self._estimate_tokens(para)
+            
+            if current_size + para_tokens > self.max_chunk_size:
+                if current_chunk:
+                    chunks.append('\n\n'.join(current_chunk))
+                current_chunk = [para]
+                current_size = para_tokens
+            else:
+                current_chunk.append(para)
+                current_size += para_tokens
+        
+        if current_chunk:
+            chunks.append('\n\n'.join(current_chunk))
+            
+        return chunks
+
+    def _summarize_chunk(self, chunk: str) -> str:
+        """Summarize a chunk of text to reduce token count while preserving key information."""
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4-turbo-preview",
+                messages=[
+                    {"role": "system", "content": "You are an expert at summarizing technical documents while preserving key information and structure."},
+                    {"role": "user", "content": f"Please summarize the following text while preserving all key technical information, requirements, and design decisions:\n\n{chunk}"}
+                ],
+                temperature=0.3,
+                max_tokens=2000
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Warning: Could not summarize chunk: {str(e)}")
+            return chunk
+
+    def _process_large_document(self, design_doc: str) -> str:
+        """Process a large document by chunking and summarizing if necessary."""
+        total_tokens = self._estimate_tokens(design_doc)
+        
+        if total_tokens <= self.max_chunk_size:
+            return design_doc
+            
+        print(f"Document is large ({total_tokens} estimated tokens). Processing in chunks...")
+        
+        chunks = self._chunk_document(design_doc)
+        processed_chunks = []
+        
+        for i, chunk in enumerate(chunks, 1):
+            print(f"Processing chunk {i}/{len(chunks)}...")
+            processed_chunk = self._summarize_chunk(chunk)
+            processed_chunks.append(processed_chunk)
+            
+        return "\n\n".join(processed_chunks)
 
     def _load_prompt_templates(self) -> Dict[str, PromptTemplate]:
         """Load prompt templates from the specified directory."""
@@ -266,13 +338,22 @@ For each section, consider:
 4. Potential risks and mitigations
 5. Scalability and maintainability"""
 
-    def review_design(self, design_doc: str, criteria: DesignReviewCriteria) -> Dict:
+    def review_design(self, design_doc: Union[str, Path], criteria: DesignReviewCriteria) -> Dict:
+        """Review a design document from a file or string."""
         try:
+            # If design_doc is a file path, parse it
+            if isinstance(design_doc, (str, Path)) and os.path.exists(design_doc):
+                print(f"Parsing document: {design_doc}")
+                design_doc = self.document_parser.parse_document(design_doc)
+            
+            # Process large documents
+            processed_doc = self._process_large_document(design_doc)
+            
             response = self.client.chat.completions.create(
                 model="gpt-4-turbo-preview",
                 messages=[
                     {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": self._create_review_prompt(design_doc, criteria)}
+                    {"role": "user", "content": self._create_review_prompt(processed_doc, criteria)}
                 ],
                 temperature=0.7,
                 max_tokens=4000,
@@ -352,38 +433,14 @@ def main():
     # Example usage
     agent = DesignReviewAgent(prompt_templates_dir="prompt_templates")
     
-    # Example design document (replace with actual document)
+    # Example with different document formats
+    # 1. From a file
+    result = agent.review_design("path/to/design.docx", criteria)
+    
+    # 2. From a string
     design_doc = """
     [Your design document content here]
     """
-    
-    # Example organization-specific criteria
-    org_design_criteria = [
-        "Architecture alignment with company standards",
-        "Component reusability",
-        "Scalability considerations",
-        "Integration patterns"
-    ]
-    
-    org_proposal_criteria = [
-        "Cost efficiency",
-        "Implementation timeline",
-        "Resource requirements",
-        "Risk mitigation strategy"
-    ]
-    
-    # Example criteria with organization-specific criteria
-    criteria = DesignReviewCriteria(
-        problem_statement="",
-        high_level_design="",
-        proposal="",
-        security="",
-        operating_model="",
-        resiliency="",
-        org_design_criteria=org_design_criteria,
-        org_proposal_criteria=org_proposal_criteria
-    )
-    
     result = agent.review_design(design_doc, criteria)
     
     if result["status"] == "success":
