@@ -17,8 +17,7 @@ A powerful tool for automated technical design document review using OpenAI's GP
   - High Level Design
   - Proposal
   - Security
-  - Operating Model
-  - Resiliency
+  - Operations
 - Detailed reasoning and recommendations for each section
 - Organization-specific criteria support
 - Large document handling with smart chunking
