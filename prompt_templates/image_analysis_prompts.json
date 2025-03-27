@@ -1,0 +1,25 @@
+{
+    "name": "image_analysis_prompts",
+    "content": {
+        "technical_diagram": {
+            "name": "technical_diagram_analysis",
+            "content": "Analyze this technical diagram focusing on:\n1. Component architecture and relationships\n2. Data flow and interactions\n3. Design patterns and principles\n4. Scalability and performance considerations\n5. Potential bottlenecks or issues\n\nFocus areas: {focus_areas}\n\nPlease provide your analysis in JSON format with description, technical_details, suggestions, quality_score, and issues.",
+            "variables": ["focus_areas"]
+        },
+        "architecture_diagram": {
+            "name": "architecture_diagram_analysis",
+            "content": "Analyze this architecture diagram focusing on:\n1. System components and their responsibilities\n2. Integration points and dependencies\n3. Security boundaries and controls\n4. Scalability and high availability design\n5. Compliance and regulatory considerations\n\nFocus areas: {focus_areas}\n\nPlease provide your analysis in JSON format with description, technical_details, suggestions, quality_score, and issues.",
+            "variables": ["focus_areas"]
+        },
+        "sequence_diagram": {
+            "name": "sequence_diagram_analysis",
+            "content": "Analyze this sequence diagram focusing on:\n1. Flow of interactions and messages\n2. Error handling and recovery paths\n3. Performance implications\n4. Potential race conditions\n5. Scalability considerations\n\nFocus areas: {focus_areas}\n\nPlease provide your analysis in JSON format with description, technical_details, suggestions, quality_score, and issues.",
+            "variables": ["focus_areas"]
+        },
+        "security_diagram": {
+            "name": "security_diagram_analysis",
+            "content": "Analyze this security diagram focusing on:\n1. Security boundaries and controls\n2. Authentication and authorization flows\n3. Data protection mechanisms\n4. Compliance requirements\n5. Potential security vulnerabilities\n\nFocus areas: {focus_areas}\n\nPlease provide your analysis in JSON format with description, technical_details, suggestions, quality_score, and issues.",
+            "variables": ["focus_areas"]
+        }
+    }
+} 
