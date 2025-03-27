@@ -10,6 +10,7 @@ from pathlib import Path
 from document_parser import DocumentParser
 import logging
 from datetime import datetime
+from image_analyzer import ImageAnalyzer, ImageAnalysisResult
 
 # Configure logging
 logging.basicConfig(
@@ -68,6 +69,8 @@ class DesignReviewResult(BaseModel):
             "chunks_processed": 0
         }
     )
+    image_analysis: Optional[List[ImageAnalysisResult]] = Field(None, description="Analysis of images in the document")
+    error: Optional[str] = Field(None, description="Error message if review failed")
 
 class DesignReviewCriteria(BaseModel):
     problem_statement: str
@@ -102,6 +105,7 @@ class DesignReviewAgent:
         self.prompt_templates = self._load_prompt_templates()
         self.max_chunk_size = max_chunk_size
         self.document_parser = DocumentParser()
+        self.image_analyzer = ImageAnalyzer(client=self.client)
         
         # Default specialized prompts if no templates are loaded
         self.specialized_prompts = {
@@ -426,7 +430,7 @@ For each section, consider:
 4. Potential risks and mitigations
 5. Scalability and maintainability"""
 
-    def review_design(self, design_doc: Union[str, Path], criteria: DesignReviewCriteria) -> Dict:
+    def review_design(self, design_doc: Union[str, Path], criteria: DesignReviewCriteria, include_images: bool = True) -> Dict:
         """Review a design document from a file or string."""
         start_time = datetime.now()
         try:
@@ -462,9 +466,18 @@ For each section, consider:
                 "chunks_processed": len(processed_doc.split('\n\n')) if processed_doc != design_doc else 0
             })
             
+            # Analyze images if requested
+            image_analysis = None
+            if include_images:
+                try:
+                    image_analysis = self.image_analyzer.analyze_document_images(design_doc)
+                except Exception as e:
+                    logger.warning(f"Warning: Image analysis failed: {str(e)}")
+            
             return {
                 "status": "success",
-                "review": review_result
+                "review": review_result,
+                "image_analysis": image_analysis
             }
             
         except OpenAIError as e:
@@ -605,17 +618,32 @@ def main():
     
     # Example with different document formats
     # 1. From a file
-    result = agent.review_design("path/to/design.docx", criteria)
+    result = agent.review_design("path/to/design.docx", criteria, include_images=True)
     
     # 2. From a string
     design_doc = """
     [Your design document content here]
     """
-    result = agent.review_design(design_doc, criteria)
+    result = agent.review_design(design_doc, criteria, include_images=True)
     
     if result["status"] == "success":
         formatted_output = agent.format_review_output(result["review"])
         print(formatted_output)
+        
+        if result["image_analysis"]:
+            print("\nImage Analysis:")
+            for i, analysis in enumerate(result["image_analysis"], 1):
+                print(f"\nImage {i}:")
+                print(f"Description: {analysis.description}")
+                print(f"Technical Details: {analysis.technical_details}")
+                print(f"Quality Score: {analysis.quality_score}")
+                print("Suggestions:")
+                for suggestion in analysis.suggestions:
+                    print(f"- {suggestion}")
+                if analysis.issues:
+                    print("Issues:")
+                    for issue in analysis.issues:
+                        print(f"- {issue}")
     else:
         print(f"Error during review: {result['message']}")
 
