@@ -1,0 +1,45 @@
+@startuml Activity Diagram
+
+' Style settings
+skinparam activity {
+    BackgroundColor White
+    BorderColor #666666
+    FontColor #666666
+}
+
+start
+
+:Read Image File;
+
+if (Image Valid?) then (yes)
+    :Load Image with OpenCV;
+else (no)
+    :Raise ValueError;
+    stop
+endif
+
+if (Grayscale Option?) then (yes)
+    :Convert to Grayscale;
+endif
+
+if (Resize Option?) then (yes)
+    :Check Image Size;
+    if (Size > Max Size?) then (yes)
+        :Calculate Scale Factor;
+        :Resize Image;
+    endif
+endif
+
+if (Threshold Option?) then (yes)
+    :Apply Adaptive Thresholding;
+endif
+
+if (Denoise Option?) then (yes)
+    :Apply Denoising;
+endif
+
+:Save Preprocessed Image;
+
+stop
+
+@enduml 

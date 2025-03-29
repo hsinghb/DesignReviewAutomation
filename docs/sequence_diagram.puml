@@ -1,0 +1,51 @@
+@startuml Sequence Diagram
+
+' Style settings
+skinparam sequence {
+    ArrowColor #666666
+    ActorBorderColor #666666
+    LifeLineBorderColor #666666
+    ParticipantBorderColor #666666
+}
+
+' Participants
+actor User
+participant "ImageAnalyzer" as IA
+participant "OpenCV" as CV
+participant "PDF2Image/Docx2Txt" as Extractor
+participant "OpenAI GPT-4 Vision" as GPT
+participant "File System" as FS
+
+' Main flow
+User -> IA: analyze_document_images(document_path)
+
+' Document type check and image extraction
+alt document is PDF
+    IA -> Extractor: convert_from_path(pdf_path)
+    Extractor -> FS: save pages as images
+    FS --> Extractor: image paths
+    Extractor --> IA: list of image paths
+else document is DOCX
+    IA -> Extractor: process(docx_path)
+    Extractor -> FS: extract images
+    FS --> Extractor: image paths
+    Extractor --> IA: list of image paths
+end
+
+' Image analysis loop
+loop for each image
+    IA -> CV: preprocess_image(image_path)
+    CV --> IA: preprocessed image path
+    
+    IA -> FS: read preprocessed image
+    FS --> IA: image data
+    
+    IA -> GPT: analyze_image(image_data)
+    GPT --> IA: analysis result
+    
+    IA -> IA: create ImageAnalysisResult
+end
+
+IA --> User: list of analysis results
+
+@enduml 

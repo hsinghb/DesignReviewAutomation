@@ -1,0 +1,68 @@
+@startuml Class Diagram
+
+' Style settings
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    ArrowColor #666666
+    BorderColor #666666
+}
+
+' Classes
+class ImageAnalyzer {
+    - client: OpenAI
+    - temp_dir: str
+    + __init__(client: Optional[OpenAI])
+    + analyze_image(image_path: str, analysis_options: Optional[Dict]) -> ImageAnalysisResult
+    + analyze_document_images(document_path: str, analysis_options: Optional[Dict]) -> List[ImageAnalysisResult]
+    - _encode_image(image_path: str) -> str
+    - _extract_images_from_pdf(pdf_path: str) -> List[str]
+    - _extract_images_from_docx(docx_path: str) -> List[str]
+    - _preprocess_image(image_path: str, preprocessing_options: Optional[Dict]) -> str
+    + __del__()
+}
+
+class ImageAnalysisResult {
+    + description: str
+    + technical_details: str
+    + suggestions: List[str]
+    + quality_score: float
+    + issues: List[str]
+}
+
+class PromptTemplate {
+    + name: str
+    + content: Dict[str, Dict]
+}
+
+' External dependencies
+class OpenAI {
+    + chat
+}
+
+class PDF2Image {
+    + convert_from_path()
+}
+
+class Docx2Txt {
+    + process()
+}
+
+class OpenCV {
+    + imread()
+    + cvtColor()
+    + adaptiveThreshold()
+    + fastNlMeansDenoising()
+    + resize()
+    + imwrite()
+}
+
+' Relationships
+ImageAnalyzer --> OpenAI : uses
+ImageAnalyzer --> PDF2Image : uses
+ImageAnalyzer --> Docx2Txt : uses
+ImageAnalyzer --> OpenCV : uses
+ImageAnalyzer --> ImageAnalysisResult : creates
+ImageAnalyzer --> PromptTemplate : uses
+
+@enduml 

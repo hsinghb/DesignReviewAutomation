@@ -1,0 +1,60 @@
+@startuml Component Diagram
+
+' Style settings
+skinparam component {
+    BackgroundColor White
+    BorderColor #666666
+}
+
+' Components
+package "Design Review Automation" {
+    [Image Analyzer] as IA
+    [Document Parser] as DP
+    [Prompt Templates] as PT
+}
+
+package "External Services" {
+    [OpenAI GPT-4 Vision] as GPT
+    [PDF2Image] as PDF
+    [Docx2Txt] as DOCX
+    [OpenCV] as CV
+}
+
+package "File Formats" {
+    [PDF Documents] as PDF_DOC
+    [DOCX Documents] as DOCX_DOC
+    [Images] as IMG
+}
+
+' Relationships
+PDF_DOC --> PDF
+DOCX_DOC --> DOCX
+IMG --> CV
+
+PDF --> IA
+DOCX --> IA
+CV --> IA
+GPT --> IA
+PT --> IA
+
+IA --> DP
+
+' Notes
+note right of IA
+  Core component that:
+  - Extracts images from documents
+  - Preprocesses images
+  - Analyzes images using GPT-4 Vision
+end note
+
+note right of DP
+  Handles document parsing
+  and text extraction
+end note
+
+note right of PT
+  Contains specialized prompts
+  for different diagram types
+end note
+
+@enduml 
